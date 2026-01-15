@@ -25,12 +25,16 @@ KONG_CLUSTER_SERVER_NAME=your-cp-id.us.cp.konghq.com
 KONG_CLUSTER_TELEMETRY_ENDPOINT=your-cp-id.us.tp.konghq.com:443
 KONG_CLUSTER_TELEMETRY_SERVER_NAME=your-cp-id.us.tp.konghq.com
 
-# OIDC Client Secrets
-HR_AGENT_CLIENT_SECRET=your-actual-secret-here
-HR_MCP_CLIENT_SECRET=your-actual-secret-here
+# Okta OIDC Application Credentials
+OKTA_HR_AGENT_CLIENT_ID=your-hr-agent-client-id
+OKTA_HR_AGENT_CLIENT_SECRET=your-hr-agent-client-secret
+OKTA_HR_MCP_CLIENT_ID=your-hr-mcp-client-id
+OKTA_HR_MCP_CLIENT_SECRET=your-hr-mcp-client-secret
+OKTA_STREAMLIT_UI_CLIENT_ID=your-streamlit-ui-client-id
 
-# AI Provider API Key
-ANTHROPIC_API_KEY=your-actual-api-key-here
+# AI Provider API Keys
+ANTHROPIC_API_KEY=your-actual-anthropic-key-here
+OPENAI_API_KEY=Bearer your-actual-openai-key-here
 ```
 
 **How to set up**:
@@ -57,8 +61,16 @@ client_secret:
 This tells Kong to read the secret from the `HR_AGENT_CLIENT_SECRET` environment variable at runtime.
 
 **Current vault references in `kong.yaml`**:
-- Line 124: `{vault://env/hr-agent-client-secret}` → reads `HR_AGENT_CLIENT_SECRET`
-- Line 593: `{vault://env/hr-mcp-client-secret}` → reads `HR_MCP_CLIENT_SECRET`
+
+**Okta OIDC Credentials**:
+- `{vault://env/okta-hr-agent-client-id}` → reads `OKTA_HR_AGENT_CLIENT_ID`
+- `{vault://env/okta-hr-agent-client-secret}` → reads `OKTA_HR_AGENT_CLIENT_SECRET`
+- `{vault://env/okta-hr-mcp-client-id}` → reads `OKTA_HR_MCP_CLIENT_ID`
+- `{vault://env/okta-hr-mcp-client-secret}` → reads `OKTA_HR_MCP_CLIENT_SECRET`
+- `{vault://env/okta-streamlit-ui-client-id}` → reads `OKTA_STREAMLIT_UI_CLIENT_ID`
+
+**AI Provider Keys**:
+- `{vault://env/openai-api-key}` → reads `OPENAI_API_KEY`
 
 ### 3. Kong Konnect Certificates
 

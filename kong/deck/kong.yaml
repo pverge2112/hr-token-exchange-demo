@@ -118,10 +118,10 @@ services:
         - query
         - body
         client_id:
-        - 0oayo836akyUtZwYR697
+        - "{vault://env/okta-hr-agent-client-id}"
         client_jwk: null
         client_secret:
-        - J2LgtjTyFSma5F85_8i4mZl7wSikzHltmB5JBJRIbZnjW2Gq-1711WQgO7vA93oQ
+        - "{vault://env/okta-hr-agent-client-secret}"
         cluster_cache_redis:
           cloud_authentication:
             auth_provider: null
@@ -587,10 +587,10 @@ services:
         - query
         - body
         client_id:
-        - 0oayo8olnlqVJORVE697
+        - "{vault://env/okta-hr-mcp-client-id}"
         client_jwk: null
         client_secret:
-        - OSkxpnTAygQ6reB2RSkXZQvbm9dUgir-8c2CJ5Qojim5Jer5PRqVSDo_nkyT7sDl
+        - "{vault://env/okta-hr-mcp-client-secret}"
         cluster_cache_redis:
           cloud_authentication:
             auth_provider: null
@@ -1093,10 +1093,10 @@ services:
         - query
         - body
         client_id:
-        - 0oayo836akyUtZwYR697
+        - "{vault://env/okta-hr-agent-client-id}"
         client_jwk: null
         client_secret:
-        - J2LgtjTyFSma5F85_8i4mZl7wSikzHltmB5JBJRIbZnjW2Gq-1711WQgO7vA93oQ
+        - "{vault://env/okta-hr-agent-client-secret}"
         cluster_cache_redis:
           cloud_authentication:
             auth_provider: null
@@ -1485,7 +1485,7 @@ services:
         - query
         - body
         client_id:
-        - 0oayo7ey82HwQ8Nhe697
+        - "{vault://env/okta-streamlit-ui-client-id}"
         client_jwk: null
         client_secret: null
         cluster_cache_redis:
