@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Agent - Chat Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .user-info {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .user-info p {
+            font-size: 13px;
+            color: #666;
+            margin: 8px 0;
+            word-break: break-all;
+        }
+
+        .user-info strong {
+            color: #333;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .scopes-section h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .scope-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 4px 4px 4px 0;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .scope-read {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .scope-write {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .scope-info {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #e0e0e0;
+            background: white;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 30px;
+            background: #fafafa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: #1976d2;
+            color: white;
+        }
+
+        .message.assistant .message-avatar {
+            background: #7c4dff;
+            color: white;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .message.user .message-content {
+            background: #1976d2;
+            color: white;
+        }
+
+        .message.assistant .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+
+        .input-container {
+            padding: 20px 30px;
+            border-top: 1px solid #e0e0e0;
+            background: white;
+        }
+
+        .input-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+        }
+
+        #messageInput:focus {
+            border-color: #1976d2;
+        }
+
+        #sendButton {
+            padding: 12px 24px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        #sendButton:hover:not(:disabled) {
+            background: #1565c0;
+        }
+
+        #sendButton:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 10px 30px;
+            font-size: 13px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .loading-dots span {
+            width: 6px;
+            height: 6px;
+            background: #666;
+            border-radius: 50%;
+            animation: pulse 1.4s infinite;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+            0%, 80%, 100% {
+                opacity: 0.3;
+            }
+            40% {
+                opacity: 1;
+            }
+        }
+
+        .not-authenticated {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .not-authenticated h1 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .not-authenticated p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Token Viewer Button */
+        .token-viewer-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .view-token-button {
+            width: 100%;
+            padding: 10px 16px;
+            background: #7c4dff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .view-token-button:hover {
+            background: #6a3de8;
+        }
+
+        .view-token-button:active {
+            transform: translateY(1px);
+        }
+
+        /* Token Modal */
+        .token-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            animation: fadeIn 0.2s;
+        }
+
+        .token-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .token-modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .token-modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .token-modal-header h2 {
+            font-size: 20px;
+            color: #333;
+            margin: 0;
+        }
+
+        .close-modal-button {
+            background: none;
+            border: none;
+            font-size: 32px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .close-modal-button:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .token-modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            gap: 16px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #7c4dff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .token-section {
+            margin-bottom: 24px;
+        }
+
+        .token-section h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .token-section-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .token-display {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 11px;
+            word-break: break-all;
+            position: relative;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-button:hover {
+            background: #f5f5f5;
+            border-color: #7c4dff;
+            color: #7c4dff;
+        }
+
+        .copy-button.copied {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .claims-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .claim-item {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .claim-label {
+            font-size: 11px;
+            color: #666;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .claim-value {
+            font-size: 13px;
+            color: #333;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        .expiry-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #fff3e0;
+            border: 1px solid #ffe0b2;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .expiry-info.expired {
+            background: #ffebee;
+            border-color: #ffcdd2;
+        }
+
+        .expiry-info.valid {
+            background: #e8f5e9;
+            border-color: #c8e6c9;
+        }
+
+        .expiry-icon {
+            font-size: 24px;
+        }
+
+        .expiry-text {
+            flex: 1;
+        }
+
+        .expiry-text strong {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .expiry-text small {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .scope-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .exchange-flow {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .exchange-hop {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .exchange-hop:last-child {
+            margin-bottom: 0;
+        }
+
+        .hop-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .hop-number {
+            background: #7c4dff;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .hop-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .hop-detail {
+            font-size: 12px;
+            color: #666;
+            margin: 4px 0;
+            padding-left: 32px;
+        }
+
+        .hop-detail strong {
+            color: #333;
+            min-width: 120px;
+            display: inline-block;
+        }
+
+        .info-note {
+            background: #e3f2fd;
+            border-left: 4px solid #1976d2;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #333;
+            margin-top: 16px;
+        }
+
+        /* Sample Prompts */
+        .sample-prompts-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .sample-prompts-section h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .sample-prompt {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #333;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sample-prompt:hover {
+            background: #e3f2fd;
+            border-color: #1976d2;
+            color: #1976d2;
+        }
+
+        .sample-prompt:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+    {% if not authenticated %}
+    <div class="not-authenticated">
+        <h1>Not Authenticated</h1>
+        <p>Redirecting to login...</p>
+    </div>
+    {% else %}
+    <div class="sidebar">
+        <div class="user-info">
+            <h2>User Information</h2>
+            {% if user_info %}
+            <p><strong>User ID:</strong> {{ user_info.get('sub', 'Not available')[:30] }}...</p>
+            {% endif %}
+        </div>
+
+        <div class="token-viewer-section">
+            <button id="viewTokenButton" class="view-token-button">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 6px;">
+                    <path d="M8 4.5C5.5 4.5 3.5 6 2.5 8C3.5 10 5.5 11.5 8 11.5C10.5 11.5 12.5 10 13.5 8C12.5 6 10.5 4.5 8 4.5Z" stroke="currentColor" stroke-width="1.5"/>
+                    <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+                View Token Details
+            </button>
+        </div>
+
+        <div class="sample-prompts-section">
+            <h3>Sample Prompts</h3>
+            <button class="sample-prompt" data-prompt="Get me a list of employees">
+                📋 List all employees
+            </button>
+            <button class="sample-prompt" data-prompt="Get me a list of departments">
+                🏢 List all departments
+            </button>
+            <button class="sample-prompt" data-prompt="Get me a list of employees by department">
+                👥 Show employees by department
+            </button>
+            <button class="sample-prompt" data-prompt="Get me a list of employees and their salaries">
+                💰 List employees with salaries
+            </button>
+            <button class="sample-prompt" data-prompt="Who is the employee with the highest salary?">
+                🏆 Find employee with highest salary
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>HR Agent Chat</h1>
+            <p>Ask questions about employees, departments, salaries, and organizational structure</p>
+        </div>
+
+        <div id="chatContainer" class="chat-container">
+            <!-- Initial welcome message -->
+            <div class="message assistant">
+                <div class="message-avatar">HR</div>
+                <div class="message-content">
+                    Hello! I'm your HR assistant. I can help you with employee information, department details, salary data, and organizational charts based on your access permissions. What would you like to know?
+                </div>
+            </div>
+        </div>
+
+        <div id="errorContainer"></div>
+
+        <div class="input-container">
+            <form id="chatForm" class="input-form">
+                <input
+                    type="text"
+                    id="messageInput"
+                    placeholder="Ask a question about HR data..."
+                    autocomplete="off"
+                    required
+                />
+                <button type="submit" id="sendButton">Send</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Token Details Modal -->
+    <div id="tokenModal" class="token-modal">
+        <div class="token-modal-content">
+            <div class="token-modal-header">
+                <h2>Token Details</h2>
+                <button id="closeModalButton" class="close-modal-button">&times;</button>
+            </div>
+            <div id="tokenModalBody" class="token-modal-body">
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Loading token details...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Clean up OAuth callback parameters from URL
+        (function() {
+            const url = new URL(window.location.href);
+            if (url.searchParams.has('code') || url.searchParams.has('state')) {
+                // Remove OAuth parameters
+                url.searchParams.delete('code');
+                url.searchParams.delete('state');
+                // Replace URL without reloading page
+                window.history.replaceState({}, document.title, url.pathname + url.search);
+            }
+        })();
+
+        const chatContainer = document.getElementById('chatContainer');
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const errorContainer = document.getElementById('errorContainer');
+
+        let chatHistory = [];
+
+        function addMessage(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = role === 'user' ? 'U' : 'HR';
+
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.textContent = content;
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            chatContainer.appendChild(messageDiv);
+
+            // Scroll to bottom
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function showLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loadingIndicator';
+            loadingDiv.className = 'message assistant';
+            loadingDiv.innerHTML = `
+                <div class="message-avatar">HR</div>
+                <div class="message-content loading">
+                    <span>Thinking</span>
+                    <div class="loading-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            `;
+            chatContainer.appendChild(loadingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function removeLoading() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+            }
+        }
+
+        function showError(message) {
+            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+            setTimeout(() => {
+                errorContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Add user message to chat
+            addMessage('user', message);
+            chatHistory.push({ role: 'user', content: message });
+
+            // Clear input and disable form
+            messageInput.value = '';
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+
+            // Show loading indicator
+            showLoading();
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        chat_history: chatHistory
+                    })
+                });
+
+                removeLoading();
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Add assistant response to chat
+                addMessage('assistant', data.response);
+                chatHistory.push({ role: 'assistant', content: data.response });
+
+            } catch (error) {
+                removeLoading();
+                console.error('Error:', error);
+                showError(`Error: ${error.message}`);
+                addMessage('assistant', 'I apologize, but I encountered an error processing your request. Please try again.');
+            } finally {
+                // Re-enable form
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        });
+
+        // Focus input on load
+        messageInput.focus();
+
+        // Sample prompts functionality
+        document.querySelectorAll('.sample-prompt').forEach(button => {
+            button.addEventListener('click', () => {
+                const prompt = button.getAttribute('data-prompt');
+                messageInput.value = prompt;
+                messageInput.focus();
+                // Optionally auto-submit
+                // chatForm.dispatchEvent(new Event('submit'));
+            });
+        });
+
+        // Token Viewer Modal Logic
+        const tokenModal = document.getElementById('tokenModal');
+        const viewTokenButton = document.getElementById('viewTokenButton');
+        const closeModalButton = document.getElementById('closeModalButton');
+        const tokenModalBody = document.getElementById('tokenModalBody');
+
+        // Open modal
+        viewTokenButton.addEventListener('click', async () => {
+            tokenModal.classList.add('active');
+            await loadTokenDetails();
+        });
+
+        // Close modal
+        closeModalButton.addEventListener('click', () => {
+            tokenModal.classList.remove('active');
+        });
+
+        // Close modal when clicking outside
+        tokenModal.addEventListener('click', (e) => {
+            if (e.target === tokenModal) {
+                tokenModal.classList.remove('active');
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && tokenModal.classList.contains('active')) {
+                tokenModal.classList.remove('active');
+            }
+        });
+
+        // Load token details from API
+        async function loadTokenDetails() {
+            tokenModalBody.innerHTML = `
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Loading token details...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/token-details', {
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to load token details: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayTokenDetails(data);
+            } catch (error) {
+                console.error('Error loading token details:', error);
+                tokenModalBody.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: #c62828;">
+                        <p>Failed to load token details: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Display token details in modal
+        function displayTokenDetails(data) {
+            const expirySeconds = data.expiry.seconds_until_expiry;
+            const isExpired = expirySeconds <= 0;
+            const expiryClass = isExpired ? 'expired' : 'valid';
+            const expiryIcon = isExpired ? '⚠️' : '✅';
+            const expiryMessage = isExpired
+                ? 'Token has expired'
+                : `Token expires in ${formatDuration(expirySeconds)}`;
+
+            // Helper function to check if two tokens are the same
+            function tokensAreSame(token1, token2) {
+                return token1 === token2;
+            }
+
+            // Get audience from token claims
+            function getAudience(claims) {
+                if (!claims || !claims.aud) return 'Unknown';
+                return Array.isArray(claims.aud) ? claims.aud.join(', ') : claims.aud;
+            }
+
+            let html = `
+                <!-- Token Expiry Info -->
+                <div class="expiry-info ${expiryClass}">
+                    <div class="expiry-icon">${expiryIcon}</div>
+                    <div class="expiry-text">
+                        <strong>${expiryMessage}</strong>
+                        <small>Expires: ${new Date(data.expiry.datetime).toLocaleString()}</small>
+                    </div>
+                </div>
+
+                <!-- Initial Access Token -->
+                <div class="token-section">
+                    <h3>
+                        Initial Access Token (Login)
+                        <span class="token-section-badge" style="background: #e3f2fd; color: #1565c0;">Audience: ${getAudience(data.claims)}</span>
+                    </h3>
+                    <div class="token-display" style="position: relative;">
+                        <button class="copy-button" onclick="copyToken('${data.token}', this)">Copy</button>
+                        <div style="padding-right: 70px;">${data.token}</div>
+                    </div>
+                    <div style="margin-top: 8px; font-size: 12px; color: #666;">
+                        <strong>Key Claims:</strong>
+                        aud: <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px;">${getAudience(data.claims)}</code> |
+                        sub: <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px;">${data.claims.sub || 'N/A'}</code>
+                    </div>
+                </div>
+
+                <!-- JWT Claims -->
+                <div class="token-section">
+                    <h3>Decoded JWT Claims</h3>
+                    <div class="claims-grid">
+                        ${Object.entries(data.claims).map(([key, value]) => `
+                            <div class="claim-item">
+                                <div class="claim-label">${key}</div>
+                                <div class="claim-value">${formatClaimValue(value)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Scopes -->
+                <div class="token-section">
+                    <h3>Token Scopes</h3>
+                    <div class="scope-list">
+                        ${data.scopes.hr_scopes.map(scope => {
+                            const scopeType = scope.includes(':read') ? 'scope-read' :
+                                            scope.includes(':write') ? 'scope-write' : 'scope-info';
+                            return `<span class="scope-badge ${scopeType}">${scope}</span>`;
+                        }).join('')}
+                        ${data.scopes.other_scopes.map(scope =>
+                            `<span class="scope-badge scope-info">${scope}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+
+                <!-- Exchanged Tokens -->
+                ${data.exchanged_tokens && data.exchanged_tokens.length > 0 ? `
+                    <div class="token-section">
+                        <h3>Exchanged Tokens</h3>
+                        ${data.exchanged_tokens.map((exchangedToken, index) => {
+                            const isDuplicate = tokensAreSame(exchangedToken.token, data.token);
+                            const duplicateWarning = isDuplicate ? `
+                                <div style="background: #ffebee; border: 2px solid #f44336; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+                                    <strong style="color: #c62828;">⚠️ WARNING:</strong> This token is identical to the initial login token!
+                                    Token exchange may not be working correctly. Expected a token with audience: <code>${exchangedToken.hop === 1 ? 'api://hr-demo' : 'api://mcp-internal'}</code>
+                                </div>
+                            ` : `
+                                <div style="background: #e8f5e9; border: 2px solid #4caf50; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+                                    <strong style="color: #2e7d32;">✅ SUCCESS:</strong> This token is different from the initial token.
+                                    Token exchange is working correctly!
+                                </div>
+                            `;
+
+                            const tokenAudience = getAudience(exchangedToken.claims);
+                            const borderColor = isDuplicate ? '#f44336' : '#4caf50';
+
+                            return `
+                            <div style="margin-bottom: 20px; padding: 16px; background: #f9f9f9; border-radius: 8px; border: 2px solid ${borderColor};">
+                                <h4 style="margin: 0 0 8px 0; color: #7c4dff; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                                    <span style="background: #7c4dff; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px;">
+                                        ${exchangedToken.hop}
+                                    </span>
+                                    ${exchangedToken.description}
+                                </h4>
+                                <div style="margin-bottom: 12px; font-size: 13px;">
+                                    <strong>Expected Audience:</strong> <code style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px;">${exchangedToken.hop === 1 ? 'api://hr-demo' : 'api://mcp-internal'}</code><br>
+                                    <strong>Actual Audience:</strong> <code style="background: ${isDuplicate ? '#ffebee' : '#e8f5e9'}; padding: 4px 8px; border-radius: 4px;">${tokenAudience}</code>
+                                </div>
+                                ${duplicateWarning}
+                                <div class="token-display" style="position: relative; margin-bottom: 12px;">
+                                    <button class="copy-button" onclick="copyToken('${exchangedToken.token}', this)">Copy</button>
+                                    <div style="padding-right: 70px;">${exchangedToken.token}</div>
+                                </div>
+                                ${exchangedToken.claims ? `
+                                    <details style="margin-top: 12px;">
+                                        <summary style="cursor: pointer; font-weight: 500; padding: 8px; background: #f5f5f5; border-radius: 4px;">
+                                            View All Claims
+                                        </summary>
+                                        <div class="claims-grid" style="margin-top: 12px;">
+                                            ${Object.entries(exchangedToken.claims).map(([key, value]) => `
+                                                <div class="claim-item">
+                                                    <div class="claim-label">${key}</div>
+                                                    <div class="claim-value">${formatClaimValue(value)}</div>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </details>
+                                ` : ''}
+                            </div>
+                        `}).join('')}
+                    </div>
+                ` : `
+                    <div class="token-section">
+                        <h3>Exchanged Tokens</h3>
+                        <div class="info-note" style="background: #fff3e0;">
+                            <strong>ℹ️ Note:</strong> No exchanged tokens captured yet. Send a chat message to trigger token exchange and see the exchanged tokens here.
+                        </div>
+                    </div>
+                `}
+
+                <!-- Token Exchange Flow -->
+                <div class="token-section">
+                    <h3>Token Exchange Flow</h3>
+                    <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
+                        ${data.token_exchange_info.description}
+                    </p>
+                    <div class="exchange-flow">
+                        ${data.token_exchange_info.hops.map(hop => `
+                            <div class="exchange-hop">
+                                <div class="hop-header">
+                                    <div class="hop-number">${hop.hop}</div>
+                                    <div class="hop-title">${hop.from} → ${hop.to}</div>
+                                </div>
+                                <div class="hop-detail">
+                                    <strong>Endpoint:</strong> ${hop.endpoint}
+                                </div>
+                                <div class="hop-detail">
+                                    <strong>Mechanism:</strong> ${hop.mechanism}
+                                </div>
+                                <div class="hop-detail">
+                                    <strong>Audience:</strong> ${hop.audience}
+                                </div>
+                                <div class="hop-detail">
+                                    <strong>Scopes:</strong> ${hop.scopes_requested}
+                                </div>
+                            </div>
+                        `).join('')}
+                        <div class="info-note">
+                            <strong>ℹ️ Note:</strong> ${data.token_exchange_info.note}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            tokenModalBody.innerHTML = html;
+        }
+
+        // Copy token to clipboard
+        function copyToken(token, button) {
+            navigator.clipboard.writeText(token).then(() => {
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy token:', err);
+                alert('Failed to copy token to clipboard');
+            });
+        }
+
+        // Format claim value for display
+        function formatClaimValue(value) {
+            if (typeof value === 'object') {
+                return JSON.stringify(value, null, 2);
+            }
+            if (typeof value === 'number' && value > 1000000000) {
+                // Likely a timestamp
+                return `${value} (${new Date(value * 1000).toLocaleString()})`;
+            }
+            return String(value);
+        }
+
+        // Format duration in human-readable format
+        function formatDuration(seconds) {
+            if (seconds < 60) {
+                return `${Math.floor(seconds)} seconds`;
+            }
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) {
+                return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+            }
+            const hours = Math.floor(minutes / 60);
+            const remainingMinutes = minutes % 60;
+            return `${hours} hour${hours !== 1 ? 's' : ''} ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}`;
+        }
+
+        // Make copyToken available globally
+        window.copyToken = copyToken;
+    </script>
+    {% endif %}
+</body>
+</html>
