@@ -8,11 +8,12 @@ _konnect:
 
 # ENV Vault Configuration
 # This vault allows Kong to read secrets from environment variables
-# Vault references in kong.yaml use the format: {vault://env/secret-name}
+# Vault references in kong.yaml use the format: {vault://hr-env/secret-name}
 # The secret-name is converted to UPPERCASE_WITH_UNDERSCORES to match env vars
+# Note: The prefix cannot be "env", "aws", "azure", "gcp", "hcv", "konnect", or "conjur" (reserved keywords)
 vaults:
   - name: env
-    prefix: env
+    prefix: hr-env
     description: ENV vault for reading secrets from environment variables
     tags:
       - hr-demo
@@ -30,14 +31,14 @@ vaults:
 # The following vault references are used in kong.yaml:
 #
 # Okta OAuth Client Credentials (for token exchange):
-# - {vault://env/okta-hr-agent-client-id}       → OKTA_HR_AGENT_CLIENT_ID
-# - {vault://env/okta-hr-agent-client-secret}   → OKTA_HR_AGENT_CLIENT_SECRET
-# - {vault://env/okta-hr-mcp-client-id}         → OKTA_HR_MCP_CLIENT_ID
-# - {vault://env/okta-hr-mcp-client-secret}     → OKTA_HR_MCP_CLIENT_SECRET
-# - {vault://env/okta-streamlit-ui-client-id}   → OKTA_STREAMLIT_UI_CLIENT_ID
+# - {vault://hr-env/okta-hr-agent-client-id}       → OKTA_HR_AGENT_CLIENT_ID
+# - {vault://hr-env/okta-hr-agent-client-secret}   → OKTA_HR_AGENT_CLIENT_SECRET
+# - {vault://hr-env/okta-hr-mcp-client-id}         → OKTA_HR_MCP_CLIENT_ID
+# - {vault://hr-env/okta-hr-mcp-client-secret}     → OKTA_HR_MCP_CLIENT_SECRET
+# - {vault://hr-env/okta-streamlit-ui-client-id}   → OKTA_STREAMLIT_UI_CLIENT_ID
 #
 # AI Provider API Keys:
-# - {vault://env/openai-api-key}                → OPENAI_API_KEY
+# - {vault://hr-env/openai-api-key}                → OPENAI_API_KEY
 #
 # ============================================================================
 # ENVIRONMENT VARIABLE SETUP

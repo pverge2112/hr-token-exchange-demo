@@ -17,20 +17,20 @@ echo "Kong ENV Vault Configuration - Apply Script"
 echo "=================================================="
 echo ""
 
+# Check if main .env file exists and source it first
+if [ -f "../../.env" ]; then
+    echo -e "${GREEN}✓${NC} Found .env file, sourcing it..."
+    source ../../.env
+else
+    echo -e "${YELLOW}⚠${NC} No .env file found at ../../.env"
+fi
+
 # Check required environment variables
 echo "Checking required environment variables..."
 MISSING_VARS=()
 
 if [ -z "$KONNECT_TOKEN" ]; then
     MISSING_VARS+=("KONNECT_TOKEN")
-fi
-
-# Check if main .env file exists
-if [ -f "../../.env" ]; then
-    echo -e "${GREEN}✓${NC} Found .env file, sourcing it..."
-    source ../../.env
-else
-    echo -e "${YELLOW}⚠${NC} No .env file found at ../../.env"
 fi
 
 # Check Kong Konnect credentials
@@ -81,25 +81,28 @@ echo "  OKTA_STREAMLIT_UI_CLIENT_ID: ${OKTA_STREAMLIT_UI_CLIENT_ID:0:20}..."
 echo "  OPENAI_API_KEY: ${OPENAI_API_KEY:0:20}..."
 echo ""
 
-# Set decK environment variables
-export DECK_KONNECT_TOKEN=$KONNECT_TOKEN
-export DECK_KONNECT_CONTROL_PLANE_NAME=${DECK_KONNECT_CONTROL_PLANE_NAME:-kong-token-exchange-prototype}
+# Set control plane name (allow override via environment variable)
+CONTROL_PLANE_NAME=${DECK_KONNECT_CONTROL_PLANE_NAME:-kong-token-exchange-prototype}
 
 echo "Applying vault configuration to Konnect..."
-echo "  Control Plane: $DECK_KONNECT_CONTROL_PLANE_NAME"
+echo "  Control Plane: $CONTROL_PLANE_NAME"
 echo ""
 
 # Apply the vault configuration
-if deck gateway sync -s vaults.yaml --select-tag hr-demo; then
+if deck gateway sync --konnect-token "$KONNECT_TOKEN" \
+    --konnect-control-plane-name "$CONTROL_PLANE_NAME" \
+    --tls-skip-verify \
+    --select-tag hr-demo \
+    vaults.yaml; then
     echo ""
     echo -e "${GREEN}✓${NC} Vault configuration applied successfully!"
     echo ""
     echo "Next steps:"
     echo "  1. Verify vault configuration:"
-    echo "     deck gateway dump --select-tag hr-demo | grep -A 10 'vaults:'"
+    echo "     deck gateway dump --konnect-token \$KONNECT_TOKEN --konnect-control-plane-name \"$CONTROL_PLANE_NAME\" --select-tag hr-demo"
     echo ""
     echo "  2. Apply main Kong configuration:"
-    echo "     deck gateway sync -s kong.yaml --select-tag hr-demo"
+    echo "     deck gateway sync --konnect-token \$KONNECT_TOKEN --konnect-control-plane-name \"$CONTROL_PLANE_NAME\" --tls-skip-verify --select-tag hr-demo kong.yaml"
     echo ""
     echo "  3. Test vault resolution by calling your APIs"
     echo ""

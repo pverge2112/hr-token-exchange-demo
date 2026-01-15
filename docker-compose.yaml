@@ -8,6 +8,7 @@ services:
     extra_hosts:
       - "localhost:host-gateway"
     environment:
+      # Kong Data Plane Configuration
       KONG_ROLE: data_plane
       KONG_DATABASE: "off"
       KONG_VITALS: "off"
@@ -23,6 +24,13 @@ services:
       KONG_CLUSTER_DP_LABELS: type:docker-macOsArmOS
       KONG_ROUTER_FLAVOR: expressions
       KONG_LOG_LEVEL: debug
+      # Vault Environment Variables (for {vault://hr-env/...} references)
+      OKTA_HR_AGENT_CLIENT_ID: ${OKTA_HR_AGENT_CLIENT_ID}
+      OKTA_HR_AGENT_CLIENT_SECRET: ${OKTA_HR_AGENT_CLIENT_SECRET}
+      OKTA_HR_MCP_CLIENT_ID: ${OKTA_HR_MCP_CLIENT_ID}
+      OKTA_HR_MCP_CLIENT_SECRET: ${OKTA_HR_MCP_CLIENT_SECRET}
+      OKTA_STREAMLIT_UI_CLIENT_ID: ${OKTA_STREAMLIT_UI_CLIENT_ID}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     networks:
       - hr-demo
 
