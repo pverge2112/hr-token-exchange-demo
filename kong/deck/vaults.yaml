@@ -1,0 +1,100 @@
+_format_version: "3.0"
+_info:
+  defaults: {}
+  select_tags:
+  - hr-demo
+_konnect:
+  control_plane_name: kong-token-exchange-prototype
+
+# ENV Vault Configuration
+# This vault allows Kong to read secrets from environment variables
+# Vault references in kong.yaml use the format: {vault://env/secret-name}
+# The secret-name is converted to UPPERCASE_WITH_UNDERSCORES to match env vars
+vaults:
+  - name: env
+    prefix: env
+    description: ENV vault for reading secrets from environment variables
+    tags:
+      - hr-demo
+    config:
+      # Optional prefix for environment variables
+      # If set to "KONG_VAULT_", then {vault://env/my-secret} reads from KONG_VAULT_MY_SECRET
+      # If blank (default), {vault://env/my-secret} reads from MY_SECRET
+      # We leave this blank since our env vars already have descriptive prefixes (OKTA_, OPENAI_, etc.)
+      prefix: ""
+
+# ============================================================================
+# VAULT REFERENCE MAPPING
+# ============================================================================
+#
+# The following vault references are used in kong.yaml:
+#
+# Okta OAuth Client Credentials (for token exchange):
+# - {vault://env/okta-hr-agent-client-id}       → OKTA_HR_AGENT_CLIENT_ID
+# - {vault://env/okta-hr-agent-client-secret}   → OKTA_HR_AGENT_CLIENT_SECRET
+# - {vault://env/okta-hr-mcp-client-id}         → OKTA_HR_MCP_CLIENT_ID
+# - {vault://env/okta-hr-mcp-client-secret}     → OKTA_HR_MCP_CLIENT_SECRET
+# - {vault://env/okta-streamlit-ui-client-id}   → OKTA_STREAMLIT_UI_CLIENT_ID
+#
+# AI Provider API Keys:
+# - {vault://env/openai-api-key}                → OPENAI_API_KEY
+#
+# ============================================================================
+# ENVIRONMENT VARIABLE SETUP
+# ============================================================================
+#
+# Before applying this configuration, ensure these environment variables are set
+# on your Kong Gateway instances (or in Konnect for managed deployments):
+#
+# For Okta OAuth Applications:
+#   export OKTA_HR_AGENT_CLIENT_ID="0oa..."
+#   export OKTA_HR_AGENT_CLIENT_SECRET="xxx..."
+#   export OKTA_HR_MCP_CLIENT_ID="0oa..."
+#   export OKTA_HR_MCP_CLIENT_SECRET="xxx..."
+#   export OKTA_STREAMLIT_UI_CLIENT_ID="0oa..."
+#
+# For AI Providers:
+#   export OPENAI_API_KEY="Bearer sk-..."
+#
+# ============================================================================
+# APPLYING THIS CONFIGURATION
+# ============================================================================
+#
+# Option 1: Apply vault configuration separately (recommended)
+# This approach applies only the vault configuration first:
+#
+#   export DECK_KONNECT_TOKEN=$KONNECT_TOKEN
+#   export DECK_KONNECT_CONTROL_PLANE_NAME=kong-token-exchange-prototype
+#   deck gateway sync -s vaults.yaml
+#
+# Option 2: Apply with main Kong configuration
+# You can merge this vault config into your main kong.yaml, then:
+#
+#   deck gateway sync -s kong.yaml
+#
+# ============================================================================
+# VERIFYING VAULT CONFIGURATION
+# ============================================================================
+#
+# After applying, verify the vault is configured:
+#
+#   deck gateway dump --konnect-token $KONNECT_TOKEN \
+#     --konnect-control-plane-name kong-token-exchange-prototype \
+#     --select-tag hr-demo
+#
+# You should see the vault configuration in the output.
+#
+# ============================================================================
+# TESTING VAULT REFERENCES
+# ============================================================================
+#
+# To test that Kong can resolve vault references:
+#
+# 1. Ensure environment variables are set on the Kong Gateway data plane
+# 2. Check Kong Gateway logs for any vault resolution errors
+# 3. Test API calls that use vault-referenced credentials
+#
+# Note: For Konnect deployments, you may need to set environment variables
+# via Konnect's Control Plane configuration or on the data plane nodes directly.
+#
+# ============================================================================
