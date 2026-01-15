@@ -841,7 +841,7 @@ HR Agent            Kong Gateway         Okta IdP      MCP Server
 1. Open `http://localhost:8000/`
 2. **Show**: Automatic redirect to Okta login page
 3. **Explain**: "Kong detected no session and triggered OAuth 2.0 authorization code flow with PKCE"
-4. Login as `alice@demo.local` (password: provided by admin)
+4. Login as `alice@demo.local` (password: Password123!)
 5. **Show**: Consent screen showing requested scopes:
    - `hr:employee:read` - View employee data
    - `hr:employee:write` - Modify employee data
